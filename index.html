@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Не се сърди, човече — 2 играчи онлайн</title>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <style>
+    :root{
+      --bg:#0f172a;
+      --panel:#111827;
+      --line:#334155;
+      --text:#f8fafc;
+      --muted:#94a3b8;
+      --red:#ef4444;
+      --blue:#3b82f6;
+      --safe:#e5e7eb;
+      --green:#22c55e;
+      --yellow:#facc15;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Arial, sans-serif;
+      background:radial-gradient(circle at top, #1e293b, #020617);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:16px;
+    }
+    .app{
+      width:min(1100px,100%);
+      display:grid;
+      grid-template-columns:360px 1fr;
+      gap:18px;
+    }
+    .card{
+      background:rgba(15,23,42,.92);
+      border:1px solid rgba(148,163,184,.25);
+      border-radius:18px;
+      padding:16px;
+      box-shadow:0 20px 60px rgba(0,0,0,.35);
+    }
+    h1{font-size:24px;margin:0 0 8px}
+    h2{font-size:18px;margin:18px 0 8px}
+    p{color:var(--muted);line-height:1.45}
+    button,input{
+      width:100%;
+      padding:12px;
+      border-radius:12px;
+      border:1px solid rgba(148,163,184,.35);
+      font-size:15px;
+    }
+    input{
+      background:#020617;
+      color:var(--text);
+      margin:6px 0;
+    }
+    button{
+      background:#2563eb;
+      color:white;
+      font-weight:700;
+      cursor:pointer;
+      margin:6px 0;
+    }
+    button.secondary{background:#334155}
+    button.danger{background:#dc2626}
+    button:disabled{opacity:.45;cursor:not-allowed}
+    .status{
+      background:#020617;
+      border:1px solid rgba(148,163,184,.25);
+      border-radius:12px;
+      padding:10px;
+      min-height:42px;
+      color:#cbd5e1;
+      margin-top:8px;
+      white-space:pre-wrap;
+    }
+    .roomCode{
+      font-size:22px;
+      letter-spacing:1px;
+      text-align:center;
+      background:#020617;
+      border:1px dashed #60a5fa;
+      padding:10px;
+      border-radius:12px;
+      margin:8px 0;
+      user-select:all;
+    }
+    .boardWrap{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+    }
+    .board{
+      width:min(92vw,620px);
+      height:min(92vw,620px);
+      max-width:620px;
+      max-height:620px;
+      display:grid;
+      grid-template-columns:repeat(11,1fr);
+      grid-template-rows:repeat(11,1fr);
+      gap:4px;
+      background:rgba(15,23,42,.65);
+      border:2px solid rgba(148,163,184,.35);
+      padding:8px;
+      border-radius:20px;
+    }
+    .cell{
+      position:relative;
+      border-radius:10px;
+      background:rgba(148,163,184,.12);
+      border:1px solid rgba(148,163,184,.25);
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      font-size:12px;
+      color:#64748b;
+    }
+    .path{background:#f8fafc;color:#0f172a}
+    .base.red{background:rgba(239,68,68,.22);border-color:rgba(239,68,68,.8)}
+    .base.blue{background:rgba(59,130,246,.22);border-color:rgba(59,130,246,.8)}
+    .home.red{background:rgba(239,68,68,.58)}
+    .home.blue{background:rgba(59,130,246,.58)}
+    .center{
+      background:linear-gradient(135deg, rgba(239,68,68,.75), rgba(59,130,246,.75));
+      color:white;
+      font-weight:bold;
+    }
+    .pawn{
+      width:72%;
+      height:72%;
+      border-radius:50%;
+      border:3px solid white;
+      box-shadow:0 4px 10px rgba(0,0,0,.35);
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:13px;
+      font-weight:900;
+      color:white;
+      z-index:3;
+    }
+    .pawn.red{background:var(--red)}
+    .pawn.blue{background:var(--blue)}
+    .pawn.canMove{
+      outline:4px solid #facc15;
+      animation:pulse .9s infinite alternate;
+    }
+    @keyframes pulse{from{transform:scale(1)}to{transform:scale(1.08)}}
+    .dice{
+      width:100px;
+      height:100px;
+      margin:12px auto;
+      background:white;
+      color:#111827;
+      border-radius:22px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:54px;
+      font-weight:900;
+      box-shadow:0 12px 30px rgba(0,0,0,.3);
+    }
+    .small{font-size:13px;color:var(--muted)}
+    .turnRed{color:#fca5a5;font-weight:800}
+    .turnBlue{color:#93c5fd;font-weight:800}
+    @media(max-width:900px){
+      .app{grid-template-columns:1fr}
+      .board{width:94vw;height:94vw}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="card">
+    <h1>🎲 Не се сърди, човече</h1>
+    <p>Онлайн версия за 2 играчи. Единият създава стая, другият влиза с кода.</p>
+
+    <h2>Връзка</h2>
+    <button id="hostBtn">Създай стая</button>
+    <input id="joinInput" placeholder="Код на стаята"/>
+    <button id="joinBtn" class="secondary">Влез в стая</button>
+
+    <div id="roomCode" class="roomCode" style="display:none"></div>
+    <div id="status" class="status">Не сте свързани.</div>
+
+    <h2>Игра</h2>
+    <div>Ти си: <strong id="myColor">—</strong></div>
+    <div>Ред е на: <strong id="turnText">—</strong></div>
+    <div class="dice" id="dice">?</div>
+    <button id="rollBtn" disabled>Хвърли зара</button>
+    <button id="newGameBtn" class="danger" disabled>Нова игра</button>
+
+    <p class="small">
+      Правила: за излизане от базата трябва 6. При 6 имаш още един ход.
+      Ако стъпиш върху противникова пионка, я връщаш в базата.
+    </p>
+  </div>
+
+  <div class="card boardWrap">
+    <div class="board" id="board"></div>
+  </div>
+</div>
+
+<script>
+const statusEl = document.getElementById("status");
+const roomCodeEl = document.getElementById("roomCode");
+const myColorEl = document.getElementById("myColor");
+const turnTextEl = document.getElementById("turnText");
+const diceEl = document.getElementById("dice");
+const rollBtn = document.getElementById("rollBtn");
+const newGameBtn = document.getElementById("newGameBtn");
+const boardEl = document.getElementById("board");
+
+let peer, conn, myColor = null, isHost = false;
+
+const RED = "red", BLUE = "blue";
+const path = [
+  [5,0],[6,0],[6,1],[6,2],[6,3],[6,4],[7,4],[8,4],[9,4],[10,4],
+  [10,5],[10,6],[9,6],[8,6],[7,6],[6,6],[6,7],[6,8],[6,9],[6,10],
+  [5,10],[4,10],[4,9],[4,8],[4,7],[4,6],[3,6],[2,6],[1,6],[0,6],
+  [0,5],[0,4],[1,4],[2,4],[3,4],[4,4],[4,3],[4,2],[4,1],[4,0]
+];
+
+const startIndex = { red:0, blue:20 };
+const homeCells = {
+  red: [[5,1],[5,2],[5,3],[5,4]],
+  blue:[[5,9],[5,8],[5,7],[5,6]]
+};
+const baseCells = {
+  red: [[1,1],[1,2],[2,1],[2,2]],
+  blue:[[8,8],[8,9],[9,8],[9,9]]
+};
+
+let game = initialGame();
+
+function initialGame(){
+  return {
+    turn: RED,
+    dice: null,
+    rolled: false,
+    winner: null,
+    pawns: {
+      red: [-1,-1,-1,-1],
+      blue:[-1,-1,-1,-1]
+    },
+    log: "Играта започна. Червеният е първи."
+  };
+}
+
+function setStatus(t){ statusEl.textContent = t; }
+
+function sendGame(){
+  if(conn && conn.open) conn.send({type:"game", game});
+}
+
+function syncGame(g){
+  game = g;
+  render();
+}
+
+function canControl(){
+  return myColor && game.turn === myColor && !game.winner;
+}
+
+function roomId(){
+  return "ludo-bg-" + Math.random().toString(36).slice(2,8).toUpperCase();
+}
+
+document.getElementById("hostBtn").onclick = () => {
+  const id = roomId();
+  isHost = true;
+  myColor = RED;
+  setupPeer(id);
+  roomCodeEl.style.display = "block";
+  roomCodeEl.textContent = id;
+  myColorEl.textContent = "Червен";
+  setStatus("Стая създадена. Изпрати кода на другия играч.");
+  render();
+};
+
+document.getElementById("joinBtn").onclick = () => {
+  const id = document.getElementById("joinInput").value.trim();
+  if(!id) return alert("Въведи код на стаята.");
+  isHost = false;
+  myColor = BLUE;
+  peer = new Peer();
+  peer.on("open", () => {
+    conn = peer.connect(id, {reliable:true});
+    setupConn();
+  });
+  peer.on("error", err => setStatus("Грешка: " + err));
+  myColorEl.textContent = "Син";
+  render();
+};
+
+function setupPeer(id){
+  peer = new Peer(id);
+  peer.on("open", () => {});
+  peer.on("connection", c => {
+    conn = c;
+    setupConn();
+  });
+  peer.on("error", err => setStatus("Грешка: " + err));
+}
+
+function setupConn(){
+  conn.on("open", () => {
+    setStatus("Свързани сте. Приятна игра!");
+    newGameBtn.disabled = false;
+    if(isHost) sendGame();
+    render();
+  });
+  conn.on("data", data => {
+    if(data.type === "game") syncGame(data.game);
+    if(data.type === "new") syncGame(initialGame());
+  });
+  conn.on("close", () => setStatus("Връзката беше прекъсната."));
+}
+
+rollBtn.onclick = () => {
+  if(!canControl() || game.rolled) return;
+  game.dice = 1 + Math.floor(Math.random()*6);
+  game.rolled = true;
+  game.log = (myColor === RED ? "Червеният" : "Синият") + " хвърли " + game.dice + ".";
+  const movable = movablePawns(myColor);
+  if(movable.length === 0){
+    game.log += "\nНяма възможен ход.";
+    if(game.dice !== 6) switchTurn();
+    else game.rolled = false;
+  }
+  sendGame();
+  render();
+};
+
+newGameBtn.onclick = () => {
+  if(confirm("Да започнем ли нова игра?")){
+    game = initialGame();
+    if(conn && conn.open) conn.send({type:"new"});
+    sendGame();
+    render();
+  }
+};
+
+function switchTurn(){
+  game.turn = game.turn === RED ? BLUE : RED;
+  game.dice = null;
+  game.rolled = false;
+}
+
+function movablePawns(color){
+  if(!game.rolled || game.dice == null) return [];
+  const arr = game.pawns[color];
+  let result = [];
+  for(let i=0;i<4;i++){
+    const pos = arr[i];
+    if(pos === 4) continue;
+    if(pos === -1 && game.dice === 6) result.push(i);
+    else if(pos >= 0 && pos + game.dice <= 4) result.push(i);
+  }
+  return result;
+}
+
+function movePawn(color, idx){
+  if(!canControl()) return;
+  if(!movablePawns(color).includes(idx)) return;
+
+  let pos = game.pawns[color][idx];
+
+  if(pos === -1 && game.dice === 6){
+    game.pawns[color][idx] = 0;
+  } else {
+    game.pawns[color][idx] += game.dice;
+  }
+
+  capture(color, idx);
+
+  if(game.pawns[color].every(p => p === 4)){
+    game.winner = color;
+    game.log = (color === RED ? "Червеният" : "Синият") + " спечели! 🎉";
+  } else if(game.dice === 6){
+    game.log = "Шестица! Играчът хвърля пак.";
+    game.dice = null;
+    game.rolled = false;
+  } else {
+    switchTurn();
+  }
+
+  sendGame();
+  render();
+}
+
+function boardIndexFor(color, progress){
+  if(progress < 0 || progress >= 4) return null;
+  return path[(startIndex[color] + progress) % path.length];
+}
+
+function capture(color, idx){
+  const opponent = color === RED ? BLUE : RED;
+  const myProgress = game.pawns[color][idx];
+  if(myProgress < 0 || myProgress >= 4) return;
+
+  const myCell = boardIndexFor(color, myProgress).join(",");
+  for(let i=0;i<4;i++){
+    const opProgress = game.pawns[opponent][i];
+    if(opProgress < 0 || opProgress >= 4) continue;
+    const opCell = boardIndexFor(opponent, opProgress).join(",");
+    if(opCell === myCell){
+      game.pawns[opponent][i] = -1;
+      game.log = "Бам! Противникова пионка се връща в базата.";
+    }
+  }
+}
+
+function cellKey(r,c){ return r + "," + c; }
+
+function render(){
+  diceEl.textContent = game.dice ?? "?";
+  turnTextEl.innerHTML = game.turn === RED ? "<span class='turnRed'>Червен</span>" : "<span class='turnBlue'>Син</span>";
+  myColorEl.textContent = myColor ? (myColor === RED ? "Червен" : "Син") : "—";
+  rollBtn.disabled = !canControl() || game.rolled || !conn || !conn.open;
+  newGameBtn.disabled = !conn || !conn.open;
+  if(game.winner) rollBtn.disabled = true;
+
+  boardEl.innerHTML = "";
+  const pathSet = new Set(path.map(x=>x.join(",")));
+  const redBaseSet = new Set(baseCells.red.map(x=>x.join(",")));
+  const blueBaseSet = new Set(baseCells.blue.map(x=>x.join(",")));
+  const redHomeSet = new Set(homeCells.red.map(x=>x.join(",")));
+  const blueHomeSet = new Set(homeCells.blue.map(x=>x.join(",")));
+
+  for(let r=0;r<11;r++){
+    for(let c=0;c<11;c++){
+      const div = document.createElement("div");
+      div.className = "cell";
+      const k = cellKey(r,c);
+      if(pathSet.has(k)) div.classList.add("path");
+      if(redBaseSet.has(k)) div.classList.add("base","red");
+      if(blueBaseSet.has(k)) div.classList.add("base","blue");
+      if(redHomeSet.has(k)) div.classList.add("home","red");
+      if(blueHomeSet.has(k)) div.classList.add("home","blue");
+      if(r>=4 && r<=6 && c>=4 && c<=6) div.classList.add("center");
+      div.dataset.key = k;
+      boardEl.appendChild(div);
+    }
+  }
+
+  placePawns(RED);
+  placePawns(BLUE);
+
+  let extra = game.log ? "\n\n" + game.log : "";
+  if(game.winner) extra += "\n\nПобедител: " + (game.winner === RED ? "Червен" : "Син");
+  if(conn && conn.open) setStatus("Свързани сте." + extra);
+}
+
+function getCell(r,c){
+  return boardEl.querySelector(`[data-key="${r},${c}"]`);
+}
+
+function placePawns(color){
+  const can = canControl() && color === myColor ? movablePawns(color) : [];
+  for(let i=0;i<4;i++){
+    const pos = game.pawns[color][i];
+    let rc;
+    if(pos === -1) rc = baseCells[color][i];
+    else if(pos === 4) rc = homeCells[color][3];
+    else rc = boardIndexFor(color, pos);
+
+    const cell = getCell(rc[0], rc[1]);
+    const pawn = document.createElement("div");
+    pawn.className = "pawn " + color;
+    pawn.textContent = i+1;
+    if(can.includes(i)) pawn.classList.add("canMove");
+    pawn.onclick = () => movePawn(color, i);
+    cell.appendChild(pawn);
+  }
+}
+
+render();
+</script>
+</body>
+</html>
