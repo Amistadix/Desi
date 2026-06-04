@@ -1,57 +1,88 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="bg">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Не се сърди, човече — 2 играчи онлайн</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Не се сърди, човече — Онлайн за двама</title>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <style>
     :root{
-      --bg:#0f172a;
-      --panel:#111827;
-      --line:#334155;
+      --bg0:#020617;
+      --bg1:#0f172a;
+      --panel:rgba(15,23,42,.92);
+      --panel2:#111827;
+      --border:rgba(148,163,184,.28);
       --text:#f8fafc;
       --muted:#94a3b8;
       --red:#ef4444;
       --blue:#3b82f6;
-      --safe:#e5e7eb;
-      --green:#22c55e;
-      --yellow:#facc15;
+      --gold:#facc15;
+      --white:#f8fafc;
+      --black:#111827;
+      --path:#e5e7eb;
+      --shadow:0 22px 70px rgba(0,0,0,.42);
+      --radius:20px;
     }
+
     *{box-sizing:border-box}
     body{
       margin:0;
-      font-family:Arial, sans-serif;
-      background:radial-gradient(circle at top, #1e293b, #020617);
-      color:var(--text);
       min-height:100vh;
+      font-family:Inter, Arial, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 20% 0%, rgba(59,130,246,.28), transparent 32%),
+        radial-gradient(circle at 80% 10%, rgba(239,68,68,.20), transparent 30%),
+        linear-gradient(135deg, var(--bg1), var(--bg0));
+      padding:16px;
       display:flex;
       justify-content:center;
       align-items:center;
-      padding:16px;
     }
+
     .app{
-      width:min(1100px,100%);
+      width:min(1180px,100%);
       display:grid;
-      grid-template-columns:360px 1fr;
+      grid-template-columns:380px 1fr;
       gap:18px;
     }
+
     .card{
-      background:rgba(15,23,42,.92);
-      border:1px solid rgba(148,163,184,.25);
-      border-radius:18px;
-      padding:16px;
-      box-shadow:0 20px 60px rgba(0,0,0,.35);
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:18px;
     }
-    h1{font-size:24px;margin:0 0 8px}
-    h2{font-size:18px;margin:18px 0 8px}
-    p{color:var(--muted);line-height:1.45}
+
+    h1{font-size:25px;margin:0 0 6px}
+    h2{font-size:17px;margin:18px 0 10px}
+    p{line-height:1.45;color:var(--muted);margin:8px 0 12px}
+
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .meta{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      margin-top:10px;
+    }
+    .pill{
+      background:#020617;
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:10px;
+      min-height:58px;
+    }
+    .pill span{display:block;color:var(--muted);font-size:12px;margin-bottom:3px}
+    .pill strong{font-size:16px}
+
     button,input{
       width:100%;
+      border-radius:13px;
+      border:1px solid var(--border);
       padding:12px;
-      border-radius:12px;
-      border:1px solid rgba(148,163,184,.35);
       font-size:15px;
+      outline:none;
     }
     input{
       background:#020617;
@@ -60,425 +91,745 @@
     }
     button{
       background:#2563eb;
-      color:white;
-      font-weight:700;
+      color:#fff;
+      font-weight:800;
       cursor:pointer;
       margin:6px 0;
+      transition:.15s transform,.15s filter,.15s opacity;
     }
+    button:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.08)}
+    button:active:not(:disabled){transform:translateY(0)}
     button.secondary{background:#334155}
     button.danger{background:#dc2626}
-    button:disabled{opacity:.45;cursor:not-allowed}
-    .status{
-      background:#020617;
-      border:1px solid rgba(148,163,184,.25);
-      border-radius:12px;
-      padding:10px;
-      min-height:42px;
-      color:#cbd5e1;
-      margin-top:8px;
-      white-space:pre-wrap;
-    }
-    .roomCode{
-      font-size:22px;
-      letter-spacing:1px;
-      text-align:center;
-      background:#020617;
-      border:1px dashed #60a5fa;
-      padding:10px;
-      border-radius:12px;
+    button:disabled{opacity:.42;cursor:not-allowed}
+
+    .room{
+      display:none;
       margin:8px 0;
+      padding:12px;
+      text-align:center;
+      border:1px dashed #60a5fa;
+      background:#020617;
+      border-radius:14px;
+      font-size:22px;
+      font-weight:900;
+      letter-spacing:1.5px;
       user-select:all;
     }
-    .boardWrap{
-      display:flex;
-      justify-content:center;
-      align-items:center;
+
+    .status{
+      min-height:74px;
+      padding:12px;
+      margin-top:8px;
+      background:#020617;
+      color:#cbd5e1;
+      border:1px solid var(--border);
+      border-radius:14px;
+      white-space:pre-wrap;
+      line-height:1.35;
     }
+
+    .boardShell{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:650px;
+    }
+
     .board{
-      width:min(92vw,620px);
-      height:min(92vw,620px);
-      max-width:620px;
-      max-height:620px;
+      width:min(92vw,650px);
+      height:min(92vw,650px);
+      max-width:650px;
+      max-height:650px;
       display:grid;
       grid-template-columns:repeat(11,1fr);
       grid-template-rows:repeat(11,1fr);
       gap:4px;
-      background:rgba(15,23,42,.65);
-      border:2px solid rgba(148,163,184,.35);
-      padding:8px;
-      border-radius:20px;
+      padding:10px;
+      border-radius:24px;
+      border:2px solid var(--border);
+      background:rgba(2,6,23,.58);
+      box-shadow:inset 0 0 25px rgba(0,0,0,.28);
     }
+
     .cell{
       position:relative;
-      border-radius:10px;
-      background:rgba(148,163,184,.12);
-      border:1px solid rgba(148,163,184,.25);
+      border-radius:11px;
       display:flex;
-      justify-content:center;
       align-items:center;
-      font-size:12px;
-      color:#64748b;
+      justify-content:center;
+      border:1px solid rgba(148,163,184,.24);
+      background:rgba(148,163,184,.10);
+      overflow:visible;
     }
-    .path{background:#f8fafc;color:#0f172a}
-    .base.red{background:rgba(239,68,68,.22);border-color:rgba(239,68,68,.8)}
-    .base.blue{background:rgba(59,130,246,.22);border-color:rgba(59,130,246,.8)}
-    .home.red{background:rgba(239,68,68,.58)}
-    .home.blue{background:rgba(59,130,246,.58)}
+    .path{background:var(--path);border-color:#cbd5e1}
+    .startRed{background:linear-gradient(135deg,#fecaca,#fff)}
+    .startBlue{background:linear-gradient(135deg,#bfdbfe,#fff)}
+    .baseRed{background:rgba(239,68,68,.22);border-color:rgba(239,68,68,.8)}
+    .baseBlue{background:rgba(59,130,246,.22);border-color:rgba(59,130,246,.8)}
+    .homeRed{background:rgba(239,68,68,.62)}
+    .homeBlue{background:rgba(59,130,246,.62)}
     .center{
-      background:linear-gradient(135deg, rgba(239,68,68,.75), rgba(59,130,246,.75));
-      color:white;
-      font-weight:bold;
+      background:
+        linear-gradient(135deg, rgba(239,68,68,.85) 0 49%, rgba(59,130,246,.85) 51% 100%);
+      border-color:rgba(255,255,255,.32);
     }
+    .center::after{
+      content:"🏁";
+      font-size:22px;
+      filter:drop-shadow(0 2px 4px rgba(0,0,0,.4));
+    }
+
     .pawn{
-      width:72%;
-      height:72%;
+      width:74%;
+      height:74%;
       border-radius:50%;
-      border:3px solid white;
-      box-shadow:0 4px 10px rgba(0,0,0,.35);
-      cursor:pointer;
+      border:3px solid #fff;
+      box-shadow:0 7px 15px rgba(0,0,0,.38);
       display:flex;
       align-items:center;
       justify-content:center;
-      font-size:13px;
+      color:#fff;
+      font-size:14px;
       font-weight:900;
-      color:white;
-      z-index:3;
+      cursor:pointer;
+      position:relative;
+      z-index:5;
     }
     .pawn.red{background:var(--red)}
     .pawn.blue{background:var(--blue)}
-    .pawn.canMove{
-      outline:4px solid #facc15;
-      animation:pulse .9s infinite alternate;
+    .pawn.movable{
+      outline:4px solid var(--gold);
+      animation:pawnPulse .7s infinite alternate;
     }
-    @keyframes pulse{from{transform:scale(1)}to{transform:scale(1.08)}}
-    .dice{
-      width:100px;
-      height:100px;
-      margin:12px auto;
-      background:white;
-      color:#111827;
-      border-radius:22px;
+    @keyframes pawnPulse{to{transform:scale(1.1)}}
+
+    .diceArea{
+      margin:12px auto 8px;
       display:flex;
-      align-items:center;
       justify-content:center;
-      font-size:54px;
-      font-weight:900;
-      box-shadow:0 12px 30px rgba(0,0,0,.3);
+      perspective:700px;
+      height:125px;
+      align-items:center;
     }
-    .small{font-size:13px;color:var(--muted)}
-    .turnRed{color:#fca5a5;font-weight:800}
-    .turnBlue{color:#93c5fd;font-weight:800}
-    @media(max-width:900px){
+    .dice3d{
+      width:92px;
+      height:92px;
+      position:relative;
+      transform-style:preserve-3d;
+      transform:rotateX(-18deg) rotateY(22deg);
+      transition:transform .7s cubic-bezier(.16,.84,.44,1);
+    }
+    .dice3d.rolling{
+      animation:diceRoll .95s linear infinite;
+    }
+    @keyframes diceRoll{
+      0%{transform:rotateX(0deg) rotateY(0deg) rotateZ(0deg)}
+      35%{transform:rotateX(260deg) rotateY(180deg) rotateZ(90deg)}
+      70%{transform:rotateX(520deg) rotateY(430deg) rotateZ(220deg)}
+      100%{transform:rotateX(720deg) rotateY(720deg) rotateZ(360deg)}
+    }
+    .face{
+      position:absolute;
+      width:92px;
+      height:92px;
+      border-radius:18px;
+      background:#fff;
+      border:2px solid #d1d5db;
+      box-shadow:inset 0 0 16px rgba(0,0,0,.12);
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      grid-template-rows:repeat(3,1fr);
+      padding:13px;
+      gap:4px;
+    }
+    .dot{
+      width:13px;
+      height:13px;
+      background:#111827;
+      border-radius:50%;
+      align-self:center;
+      justify-self:center;
+      opacity:0;
+    }
+    .d1 .m{opacity:1}
+    .d2 .tl,.d2 .br{opacity:1}
+    .d3 .tl,.d3 .m,.d3 .br{opacity:1}
+    .d4 .tl,.d4 .tr,.d4 .bl,.d4 .br{opacity:1}
+    .d5 .tl,.d5 .tr,.d5 .m,.d5 .bl,.d5 .br{opacity:1}
+    .d6 .tl,.d6 .tr,.d6 .ml,.d6 .mr,.d6 .bl,.d6 .br{opacity:1}
+
+    .front{transform:translateZ(46px)}
+    .back{transform:rotateY(180deg) translateZ(46px)}
+    .right{transform:rotateY(90deg) translateZ(46px)}
+    .left{transform:rotateY(-90deg) translateZ(46px)}
+    .top{transform:rotateX(90deg) translateZ(46px)}
+    .bottom{transform:rotateX(-90deg) translateZ(46px)}
+
+    .diceResult{
+      text-align:center;
+      color:#e2e8f0;
+      font-weight:800;
+      min-height:22px;
+    }
+
+    .tiny{font-size:12px;color:var(--muted)}
+    .redText{color:#fca5a5}
+    .blueText{color:#93c5fd}
+
+    @media(max-width:940px){
+      body{align-items:flex-start}
       .app{grid-template-columns:1fr}
+      .boardShell{min-height:auto}
       .board{width:94vw;height:94vw}
     }
   </style>
 </head>
 <body>
-<div class="app">
-  <div class="card">
-    <h1>🎲 Не се сърди, човече</h1>
-    <p>Онлайн версия за 2 играчи. Единият създава стая, другият влиза с кода.</p>
+  <main class="app">
+    <section class="card">
+      <h1>🎲 Не се сърди, човече</h1>
+      <p>Онлайн игра за двама. Качи файла като <b>index.html</b> в GitHub Pages.</p>
 
-    <h2>Връзка</h2>
-    <button id="hostBtn">Създай стая</button>
-    <input id="joinInput" placeholder="Код на стаята"/>
-    <button id="joinBtn" class="secondary">Влез в стая</button>
+      <h2>1) Онлайн връзка</h2>
+      <button id="hostBtn">Създай стая</button>
+      <input id="joinCode" placeholder="Код на стаята, например LUDO-ABC123" autocomplete="off" />
+      <button id="joinBtn" class="secondary">Влез в стая</button>
+      <div id="roomBox" class="room"></div>
+      <div id="status" class="status">Не сте свързани.</div>
 
-    <div id="roomCode" class="roomCode" style="display:none"></div>
-    <div id="status" class="status">Не сте свързани.</div>
+      <h2>2) Управление</h2>
+      <div class="meta">
+        <div class="pill"><span>Ти си</span><strong id="meText">—</strong></div>
+        <div class="pill"><span>Ред е на</span><strong id="turnText">—</strong></div>
+      </div>
 
-    <h2>Игра</h2>
-    <div>Ти си: <strong id="myColor">—</strong></div>
-    <div>Ред е на: <strong id="turnText">—</strong></div>
-    <div class="dice" id="dice">?</div>
-    <button id="rollBtn" disabled>Хвърли зара</button>
-    <button id="newGameBtn" class="danger" disabled>Нова игра</button>
+      <div class="diceArea">
+        <div id="dice" class="dice3d" aria-label="Зар">
+          <div class="face front d1"></div>
+          <div class="face back d6"></div>
+          <div class="face right d3"></div>
+          <div class="face left d4"></div>
+          <div class="face top d5"></div>
+          <div class="face bottom d2"></div>
+        </div>
+      </div>
+      <div id="diceResult" class="diceResult">Зарът още не е хвърлен.</div>
 
-    <p class="small">
-      Правила: за излизане от базата трябва 6. При 6 имаш още един ход.
-      Ако стъпиш върху противникова пионка, я връщаш в базата.
-    </p>
-  </div>
+      <button id="rollBtn" disabled>Хвърли зара</button>
+      <div class="row">
+        <button id="copyBtn" class="secondary" disabled>Копирай кода</button>
+        <button id="newGameBtn" class="danger" disabled>Нова игра</button>
+      </div>
 
-  <div class="card boardWrap">
-    <div class="board" id="board"></div>
-  </div>
-</div>
+      <p class="tiny">
+        Правила: за излизане от базата трябва 6. При 6 хвърляш пак.
+        Ако стъпиш върху противникова пионка, я връщаш в базата.
+      </p>
+    </section>
+
+    <section class="card boardShell">
+      <div id="board" class="board" aria-label="Игрална дъска"></div>
+    </section>
+  </main>
 
 <script>
-const statusEl = document.getElementById("status");
-const roomCodeEl = document.getElementById("roomCode");
-const myColorEl = document.getElementById("myColor");
-const turnTextEl = document.getElementById("turnText");
-const diceEl = document.getElementById("dice");
-const rollBtn = document.getElementById("rollBtn");
-const newGameBtn = document.getElementById("newGameBtn");
-const boardEl = document.getElementById("board");
+"use strict";
 
-let peer, conn, myColor = null, isHost = false;
+/* =========================
+   CONFIG
+========================= */
+const COLORS = Object.freeze({
+  RED: "red",
+  BLUE: "blue"
+});
 
-const RED = "red", BLUE = "blue";
-const path = [
+const LABEL = Object.freeze({
+  red: "Червен",
+  blue: "Син"
+});
+
+const PATH = Object.freeze([
   [5,0],[6,0],[6,1],[6,2],[6,3],[6,4],[7,4],[8,4],[9,4],[10,4],
   [10,5],[10,6],[9,6],[8,6],[7,6],[6,6],[6,7],[6,8],[6,9],[6,10],
   [5,10],[4,10],[4,9],[4,8],[4,7],[4,6],[3,6],[2,6],[1,6],[0,6],
   [0,5],[0,4],[1,4],[2,4],[3,4],[4,4],[4,3],[4,2],[4,1],[4,0]
-];
+]);
 
-const startIndex = { red:0, blue:20 };
-const homeCells = {
-  red: [[5,1],[5,2],[5,3],[5,4]],
-  blue:[[5,9],[5,8],[5,7],[5,6]]
+const START_INDEX = Object.freeze({ red:0, blue:20 });
+
+const CELLS = Object.freeze({
+  base: {
+    red: [[1,1],[1,2],[2,1],[2,2]],
+    blue:[[8,8],[8,9],[9,8],[9,9]]
+  },
+  home: {
+    red: [[5,1],[5,2],[5,3],[5,4]],
+    blue:[[5,9],[5,8],[5,7],[5,6]]
+  }
+});
+
+const DICE_ROTATIONS = Object.freeze({
+  1: "rotateX(-18deg) rotateY(22deg)",
+  2: "rotateX(90deg) rotateY(0deg)",
+  3: "rotateX(-18deg) rotateY(-90deg)",
+  4: "rotateX(-18deg) rotateY(90deg)",
+  5: "rotateX(-90deg) rotateY(0deg)",
+  6: "rotateX(-18deg) rotateY(180deg)"
+});
+
+/* =========================
+   DOM
+========================= */
+const $ = (id) => document.getElementById(id);
+
+const ui = {
+  board: $("board"),
+  status: $("status"),
+  roomBox: $("roomBox"),
+  joinCode: $("joinCode"),
+  hostBtn: $("hostBtn"),
+  joinBtn: $("joinBtn"),
+  rollBtn: $("rollBtn"),
+  copyBtn: $("copyBtn"),
+  newGameBtn: $("newGameBtn"),
+  meText: $("meText"),
+  turnText: $("turnText"),
+  dice: $("dice"),
+  diceResult: $("diceResult")
 };
-const baseCells = {
-  red: [[1,1],[1,2],[2,1],[2,2]],
-  blue:[[8,8],[8,9],[9,8],[9,9]]
-};
 
-let game = initialGame();
+/* Create dice dots */
+document.querySelectorAll(".face").forEach(face => {
+  ["tl","tm","tr","ml","m","mr","bl","bm","br"].forEach(name => {
+    const dot = document.createElement("span");
+    dot.className = "dot " + name;
+    face.appendChild(dot);
+  });
+});
 
-function initialGame(){
+/* =========================
+   NETWORK STATE
+========================= */
+let peer = null;
+let connection = null;
+let myColor = null;
+let isHost = false;
+let rollingLocked = false;
+
+/* =========================
+   GAME STATE
+   pawn values:
+   -1 = base
+    0..39 = global path index
+    40..43 = own home lane
+    44 = finished
+========================= */
+let game = createGame();
+
+/* =========================
+   GAME LOGIC
+========================= */
+function createGame(){
   return {
-    turn: RED,
+    version: 1,
+    turn: COLORS.RED,
     dice: null,
     rolled: false,
     winner: null,
+    moveNo: 0,
     pawns: {
       red: [-1,-1,-1,-1],
       blue:[-1,-1,-1,-1]
     },
-    log: "Играта започна. Червеният е първи."
+    message: "Играта започна. Червеният е първи."
   };
 }
 
-function setStatus(t){ statusEl.textContent = t; }
-
-function sendGame(){
-  if(conn && conn.open) conn.send({type:"game", game});
+function randomRoomCode(){
+  return "LUDO-" + Math.random().toString(36).slice(2,8).toUpperCase();
 }
 
-function syncGame(g){
-  game = g;
-  render();
+function opponentOf(color){
+  return color === COLORS.RED ? COLORS.BLUE : COLORS.RED;
+}
+
+function isConnected(){
+  return Boolean(connection && connection.open);
 }
 
 function canControl(){
-  return myColor && game.turn === myColor && !game.winner;
+  return isConnected() && myColor && game.turn === myColor && !game.winner && !rollingLocked;
 }
 
-function roomId(){
-  return "ludo-bg-" + Math.random().toString(36).slice(2,8).toUpperCase();
+function pathIndexForStart(color){
+  return START_INDEX[color];
 }
 
-document.getElementById("hostBtn").onclick = () => {
-  const id = roomId();
-  isHost = true;
-  myColor = RED;
-  setupPeer(id);
-  roomCodeEl.style.display = "block";
-  roomCodeEl.textContent = id;
-  myColorEl.textContent = "Червен";
-  setStatus("Стая създадена. Изпрати кода на другия играч.");
-  render();
-};
-
-document.getElementById("joinBtn").onclick = () => {
-  const id = document.getElementById("joinInput").value.trim();
-  if(!id) return alert("Въведи код на стаята.");
-  isHost = false;
-  myColor = BLUE;
-  peer = new Peer();
-  peer.on("open", () => {
-    conn = peer.connect(id, {reliable:true});
-    setupConn();
-  });
-  peer.on("error", err => setStatus("Грешка: " + err));
-  myColorEl.textContent = "Син";
-  render();
-};
-
-function setupPeer(id){
-  peer = new Peer(id);
-  peer.on("open", () => {});
-  peer.on("connection", c => {
-    conn = c;
-    setupConn();
-  });
-  peer.on("error", err => setStatus("Грешка: " + err));
+function homeEntryIndex(color){
+  return (START_INDEX[color] + PATH.length - 1) % PATH.length;
 }
 
-function setupConn(){
-  conn.on("open", () => {
-    setStatus("Свързани сте. Приятна игра!");
-    newGameBtn.disabled = false;
-    if(isHost) sendGame();
-    render();
-  });
-  conn.on("data", data => {
-    if(data.type === "game") syncGame(data.game);
-    if(data.type === "new") syncGame(initialGame());
-  });
-  conn.on("close", () => setStatus("Връзката беше прекъсната."));
+function isOwnPathProgress(color, boardIndex){
+  const start = pathIndexForStart(color);
+  return (boardIndex - start + PATH.length) % PATH.length;
 }
 
-rollBtn.onclick = () => {
-  if(!canControl() || game.rolled) return;
-  game.dice = 1 + Math.floor(Math.random()*6);
-  game.rolled = true;
-  game.log = (myColor === RED ? "Червеният" : "Синият") + " хвърли " + game.dice + ".";
-  const movable = movablePawns(myColor);
-  if(movable.length === 0){
-    game.log += "\nНяма възможен ход.";
-    if(game.dice !== 6) switchTurn();
-    else game.rolled = false;
+function nextPosition(color, current, dice){
+  if(current === 44) return null;
+
+  if(current === -1){
+    if(dice !== 6) return null;
+    return pathIndexForStart(color);
   }
-  sendGame();
-  render();
-};
 
-newGameBtn.onclick = () => {
-  if(confirm("Да започнем ли нова игра?")){
-    game = initialGame();
-    if(conn && conn.open) conn.send({type:"new"});
-    sendGame();
-    render();
+  if(current >= 40 && current <= 43){
+    const next = current + dice;
+    return next <= 44 ? next : null;
   }
-};
 
-function switchTurn(){
-  game.turn = game.turn === RED ? BLUE : RED;
+  const progress = isOwnPathProgress(color, current);
+
+  if(progress + dice < PATH.length){
+    return (current + dice) % PATH.length;
+  }
+
+  const homeStep = progress + dice - PATH.length;
+  return homeStep <= 4 ? 40 + homeStep : null;
+}
+
+function movablePawns(color){
+  if(!game.rolled || !game.dice || game.winner) return [];
+  return game.pawns[color]
+    .map((pos, index) => ({ index, next: nextPosition(color, pos, game.dice) }))
+    .filter(x => x.next !== null)
+    .map(x => x.index);
+}
+
+function movePawn(color, pawnIndex){
+  if(!canControl() || color !== myColor) return;
+
+  const possible = movablePawns(color);
+  if(!possible.includes(pawnIndex)) return;
+
+  const oldPos = game.pawns[color][pawnIndex];
+  const newPos = nextPosition(color, oldPos, game.dice);
+
+  game.pawns[color][pawnIndex] = newPos;
+  captureIfNeeded(color, pawnIndex);
+
+  game.moveNo += 1;
+
+  if(game.pawns[color].every(p => p === 44)){
+    game.winner = color;
+    game.message = `${LABEL[color]} спечели! 🎉`;
+  } else if(game.dice === 6){
+    game.message = `${LABEL[color]} премести пионка и има още един ход, защото хвърли 6.`;
+    game.dice = null;
+    game.rolled = false;
+  } else {
+    game.message = `${LABEL[color]} премести пионка.`;
+    changeTurn();
+  }
+
+  broadcast({ type:"game", game });
+  render();
+}
+
+function captureIfNeeded(color, pawnIndex){
+  const pos = game.pawns[color][pawnIndex];
+
+  if(pos < 0 || pos >= 40) return;
+
+  const opponent = opponentOf(color);
+  for(let i = 0; i < game.pawns[opponent].length; i++){
+    if(game.pawns[opponent][i] === pos){
+      game.pawns[opponent][i] = -1;
+      game.message = `${LABEL[color]} върна противникова пионка в базата.`;
+    }
+  }
+}
+
+function changeTurn(){
+  game.turn = opponentOf(game.turn);
   game.dice = null;
   game.rolled = false;
 }
 
-function movablePawns(color){
-  if(!game.rolled || game.dice == null) return [];
-  const arr = game.pawns[color];
-  let result = [];
-  for(let i=0;i<4;i++){
-    const pos = arr[i];
-    if(pos === 4) continue;
-    if(pos === -1 && game.dice === 6) result.push(i);
-    else if(pos >= 0 && pos + game.dice <= 4) result.push(i);
-  }
-  return result;
+/* =========================
+   DICE
+========================= */
+function showDice(value){
+  ui.dice.classList.remove("rolling");
+  ui.dice.style.transform = DICE_ROTATIONS[value] || DICE_ROTATIONS[1];
+  ui.diceResult.textContent = value ? `Падна се ${value}` : "Зарът още не е хвърлен.";
 }
 
-function movePawn(color, idx){
-  if(!canControl()) return;
-  if(!movablePawns(color).includes(idx)) return;
+function animateDice(finalValue){
+  rollingLocked = true;
+  ui.rollBtn.disabled = true;
+  ui.dice.classList.add("rolling");
+  ui.diceResult.textContent = "Зарът се върти...";
 
-  let pos = game.pawns[color][idx];
+  return new Promise(resolve => {
+    setTimeout(() => {
+      ui.dice.classList.remove("rolling");
+      showDice(finalValue);
+      rollingLocked = false;
+      resolve();
+    }, 1150);
+  });
+}
 
-  if(pos === -1 && game.dice === 6){
-    game.pawns[color][idx] = 0;
-  } else {
-    game.pawns[color][idx] += game.dice;
+async function rollDice(){
+  if(!canControl() || game.rolled) return;
+
+  const value = 1 + Math.floor(Math.random() * 6);
+  await animateDice(value);
+
+  game.dice = value;
+  game.rolled = true;
+  game.message = `${LABEL[myColor]} хвърли ${value}.`;
+
+  const moves = movablePawns(myColor);
+  if(moves.length === 0){
+    game.message += "\nНяма възможен ход.";
+    if(value === 6){
+      game.dice = null;
+      game.rolled = false;
+      game.message += "\nПонеже е 6, хвърля пак.";
+    } else {
+      changeTurn();
+    }
   }
 
-  capture(color, idx);
-
-  if(game.pawns[color].every(p => p === 4)){
-    game.winner = color;
-    game.log = (color === RED ? "Червеният" : "Синият") + " спечели! 🎉";
-  } else if(game.dice === 6){
-    game.log = "Шестица! Играчът хвърля пак.";
-    game.dice = null;
-    game.rolled = false;
-  } else {
-    switchTurn();
-  }
-
-  sendGame();
+  broadcast({ type:"game", game });
   render();
 }
 
-function boardIndexFor(color, progress){
-  if(progress < 0 || progress >= 4) return null;
-  return path[(startIndex[color] + progress) % path.length];
+/* =========================
+   NETWORK
+========================= */
+function broadcast(payload){
+  if(isConnected()) connection.send(payload);
 }
 
-function capture(color, idx){
-  const opponent = color === RED ? BLUE : RED;
-  const myProgress = game.pawns[color][idx];
-  if(myProgress < 0 || myProgress >= 4) return;
+function attachConnectionEvents(){
+  connection.on("open", () => {
+    setStatus("Свързани сте. Приятна игра!");
+    ui.newGameBtn.disabled = false;
+    if(isHost) broadcast({ type:"game", game });
+    render();
+  });
 
-  const myCell = boardIndexFor(color, myProgress).join(",");
-  for(let i=0;i<4;i++){
-    const opProgress = game.pawns[opponent][i];
-    if(opProgress < 0 || opProgress >= 4) continue;
-    const opCell = boardIndexFor(opponent, opProgress).join(",");
-    if(opCell === myCell){
-      game.pawns[opponent][i] = -1;
-      game.log = "Бам! Противникова пионка се връща в базата.";
+  connection.on("data", async payload => {
+    if(!payload || typeof payload !== "object") return;
+
+    if(payload.type === "game"){
+      const oldDice = game.dice;
+      const oldMove = game.moveNo;
+      game = payload.game;
+
+      const shouldAnimateRemoteRoll =
+        payload.animateDice === true &&
+        game.dice &&
+        game.moveNo === oldMove &&
+        game.dice !== oldDice;
+
+      if(shouldAnimateRemoteRoll) await animateDice(game.dice);
+      else showDice(game.dice);
+
+      render();
     }
-  }
+
+    if(payload.type === "new-game"){
+      game = createGame();
+      showDice(null);
+      render();
+    }
+  });
+
+  connection.on("close", () => {
+    setStatus("Връзката беше прекъсната.");
+    render();
+  });
 }
 
-function cellKey(r,c){ return r + "," + c; }
+function createRoom(){
+  const code = randomRoomCode();
+  isHost = true;
+  myColor = COLORS.RED;
 
-function render(){
-  diceEl.textContent = game.dice ?? "?";
-  turnTextEl.innerHTML = game.turn === RED ? "<span class='turnRed'>Червен</span>" : "<span class='turnBlue'>Син</span>";
-  myColorEl.textContent = myColor ? (myColor === RED ? "Червен" : "Син") : "—";
-  rollBtn.disabled = !canControl() || game.rolled || !conn || !conn.open;
-  newGameBtn.disabled = !conn || !conn.open;
-  if(game.winner) rollBtn.disabled = true;
+  peer = new Peer(code);
+  peer.on("open", () => {
+    ui.roomBox.style.display = "block";
+    ui.roomBox.textContent = code;
+    ui.copyBtn.disabled = false;
+    setStatus("Стая създадена. Изпрати кода на другия играч.");
+    render();
+  });
 
-  boardEl.innerHTML = "";
-  const pathSet = new Set(path.map(x=>x.join(",")));
-  const redBaseSet = new Set(baseCells.red.map(x=>x.join(",")));
-  const blueBaseSet = new Set(baseCells.blue.map(x=>x.join(",")));
-  const redHomeSet = new Set(homeCells.red.map(x=>x.join(",")));
-  const blueHomeSet = new Set(homeCells.blue.map(x=>x.join(",")));
+  peer.on("connection", conn => {
+    connection = conn;
+    attachConnectionEvents();
+  });
 
-  for(let r=0;r<11;r++){
-    for(let c=0;c<11;c++){
+  peer.on("error", err => setStatus("Грешка при създаване на стая: " + err.type));
+}
+
+function joinRoom(){
+  const code = ui.joinCode.value.trim().toUpperCase();
+  if(!code){
+    alert("Въведи код на стаята.");
+    return;
+  }
+
+  isHost = false;
+  myColor = COLORS.BLUE;
+  peer = new Peer();
+
+  peer.on("open", () => {
+    connection = peer.connect(code, { reliable:true });
+    attachConnectionEvents();
+    setStatus("Свързване към стаята...");
+    render();
+  });
+
+  peer.on("error", err => setStatus("Грешка при свързване: " + err.type));
+}
+
+/* =========================
+   RENDERING
+========================= */
+function keyOf(cell){
+  return `${cell[0]},${cell[1]}`;
+}
+
+function cellAt(row, col){
+  return ui.board.querySelector(`[data-cell="${row},${col}"]`);
+}
+
+function boardCellForPawn(color, pos, pawnIndex){
+  if(pos === -1) return CELLS.base[color][pawnIndex];
+
+  if(pos >= 40 && pos <= 43){
+    return CELLS.home[color][pos - 40];
+  }
+
+  if(pos === 44){
+    return CELLS.home[color][3];
+  }
+
+  return PATH[pos];
+}
+
+function renderBoard(){
+  const pathKeys = new Set(PATH.map(keyOf));
+  const redBase = new Set(CELLS.base.red.map(keyOf));
+  const blueBase = new Set(CELLS.base.blue.map(keyOf));
+  const redHome = new Set(CELLS.home.red.map(keyOf));
+  const blueHome = new Set(CELLS.home.blue.map(keyOf));
+
+  ui.board.innerHTML = "";
+
+  for(let row = 0; row < 11; row++){
+    for(let col = 0; col < 11; col++){
       const div = document.createElement("div");
       div.className = "cell";
-      const k = cellKey(r,c);
-      if(pathSet.has(k)) div.classList.add("path");
-      if(redBaseSet.has(k)) div.classList.add("base","red");
-      if(blueBaseSet.has(k)) div.classList.add("base","blue");
-      if(redHomeSet.has(k)) div.classList.add("home","red");
-      if(blueHomeSet.has(k)) div.classList.add("home","blue");
-      if(r>=4 && r<=6 && c>=4 && c<=6) div.classList.add("center");
-      div.dataset.key = k;
-      boardEl.appendChild(div);
+      div.dataset.cell = `${row},${col}`;
+
+      const key = `${row},${col}`;
+      if(pathKeys.has(key)) div.classList.add("path");
+      if(key === keyOf(PATH[START_INDEX.red])) div.classList.add("startRed");
+      if(key === keyOf(PATH[START_INDEX.blue])) div.classList.add("startBlue");
+      if(redBase.has(key)) div.classList.add("baseRed");
+      if(blueBase.has(key)) div.classList.add("baseBlue");
+      if(redHome.has(key)) div.classList.add("homeRed");
+      if(blueHome.has(key)) div.classList.add("homeBlue");
+      if(row >= 4 && row <= 6 && col >= 4 && col <= 6) div.classList.add("center");
+
+      ui.board.appendChild(div);
     }
   }
 
-  placePawns(RED);
-  placePawns(BLUE);
-
-  let extra = game.log ? "\n\n" + game.log : "";
-  if(game.winner) extra += "\n\nПобедител: " + (game.winner === RED ? "Червен" : "Син");
-  if(conn && conn.open) setStatus("Свързани сте." + extra);
-}
-
-function getCell(r,c){
-  return boardEl.querySelector(`[data-key="${r},${c}"]`);
+  placePawns(COLORS.RED);
+  placePawns(COLORS.BLUE);
 }
 
 function placePawns(color){
-  const can = canControl() && color === myColor ? movablePawns(color) : [];
-  for(let i=0;i<4;i++){
-    const pos = game.pawns[color][i];
-    let rc;
-    if(pos === -1) rc = baseCells[color][i];
-    else if(pos === 4) rc = homeCells[color][3];
-    else rc = boardIndexFor(color, pos);
+  const movable = canControl() && color === myColor ? movablePawns(color) : [];
 
-    const cell = getCell(rc[0], rc[1]);
-    const pawn = document.createElement("div");
-    pawn.className = "pawn " + color;
-    pawn.textContent = i+1;
-    if(can.includes(i)) pawn.classList.add("canMove");
-    pawn.onclick = () => movePawn(color, i);
+  game.pawns[color].forEach((pos, index) => {
+    const [row, col] = boardCellForPawn(color, pos, index);
+    const cell = cellAt(row, col);
+
+    const pawn = document.createElement("button");
+    pawn.type = "button";
+    pawn.className = `pawn ${color}`;
+    pawn.textContent = String(index + 1);
+    pawn.title = `${LABEL[color]} пионка ${index + 1}`;
+    pawn.style.width = "";
+    pawn.style.margin = "0";
+
+    if(movable.includes(index)) pawn.classList.add("movable");
+
+    pawn.addEventListener("click", () => movePawn(color, index));
     cell.appendChild(pawn);
-  }
+  });
 }
+
+function renderControls(){
+  ui.meText.textContent = myColor ? LABEL[myColor] : "—";
+  ui.meText.className = myColor === COLORS.RED ? "redText" : myColor === COLORS.BLUE ? "blueText" : "";
+
+  ui.turnText.textContent = LABEL[game.turn];
+  ui.turnText.className = game.turn === COLORS.RED ? "redText" : "blueText";
+
+  ui.rollBtn.disabled = !canControl() || game.rolled;
+  ui.newGameBtn.disabled = !isConnected();
+
+  if(!rollingLocked) showDice(game.dice);
+
+  const connectedText = isConnected() ? "Свързани сте." : "Не сте свързани.";
+  const winnerText = game.winner ? `\nПобедител: ${LABEL[game.winner]}` : "";
+  setStatus(`${connectedText}\n${game.message}${winnerText}`);
+}
+
+function render(){
+  renderBoard();
+  renderControls();
+}
+
+function setStatus(text){
+  ui.status.textContent = text;
+}
+
+/* =========================
+   EVENTS
+========================= */
+ui.hostBtn.addEventListener("click", createRoom);
+ui.joinBtn.addEventListener("click", joinRoom);
+ui.rollBtn.addEventListener("click", rollDice);
+
+ui.copyBtn.addEventListener("click", async () => {
+  const code = ui.roomBox.textContent.trim();
+  if(!code) return;
+  try{
+    await navigator.clipboard.writeText(code);
+    setStatus("Кодът е копиран: " + code);
+  }catch{
+    setStatus("Кодът е: " + code);
+  }
+});
+
+ui.newGameBtn.addEventListener("click", () => {
+  if(!confirm("Нова игра?")) return;
+  game = createGame();
+  broadcast({ type:"new-game" });
+  broadcast({ type:"game", game });
+  showDice(null);
+  render();
+});
 
 render();
 </script>
