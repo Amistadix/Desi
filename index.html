@@ -1,837 +1,108 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="bg">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Не се сърди, човече — Онлайн за двама</title>
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Desi Travel – вдъхновение за следващото ти пътешествие. Екскурзии, морски почивки и индивидуални маршрути.">
+  <meta name="theme-color" content="#123f4b">
+  <title>Desi Travel | Светът те очаква</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --bg0:#020617;
-      --bg1:#0f172a;
-      --panel:rgba(15,23,42,.92);
-      --panel2:#111827;
-      --border:rgba(148,163,184,.28);
-      --text:#f8fafc;
-      --muted:#94a3b8;
-      --red:#ef4444;
-      --blue:#3b82f6;
-      --gold:#facc15;
-      --white:#f8fafc;
-      --black:#111827;
-      --path:#e5e7eb;
-      --shadow:0 22px 70px rgba(0,0,0,.42);
-      --radius:20px;
-    }
-
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      min-height:100vh;
-      font-family:Inter, Arial, sans-serif;
-      color:var(--text);
-      background:
-        radial-gradient(circle at 20% 0%, rgba(59,130,246,.28), transparent 32%),
-        radial-gradient(circle at 80% 10%, rgba(239,68,68,.20), transparent 30%),
-        linear-gradient(135deg, var(--bg1), var(--bg0));
-      padding:16px;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-    }
-
-    .app{
-      width:min(1180px,100%);
-      display:grid;
-      grid-template-columns:380px 1fr;
-      gap:18px;
-    }
-
-    .card{
-      background:var(--panel);
-      border:1px solid var(--border);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:18px;
-    }
-
-    h1{font-size:25px;margin:0 0 6px}
-    h2{font-size:17px;margin:18px 0 10px}
-    p{line-height:1.45;color:var(--muted);margin:8px 0 12px}
-
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .meta{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:8px;
-      margin-top:10px;
-    }
-    .pill{
-      background:#020617;
-      border:1px solid var(--border);
-      border-radius:14px;
-      padding:10px;
-      min-height:58px;
-    }
-    .pill span{display:block;color:var(--muted);font-size:12px;margin-bottom:3px}
-    .pill strong{font-size:16px}
-
-    button,input{
-      width:100%;
-      border-radius:13px;
-      border:1px solid var(--border);
-      padding:12px;
-      font-size:15px;
-      outline:none;
-    }
-    input{
-      background:#020617;
-      color:var(--text);
-      margin:6px 0;
-    }
-    button{
-      background:#2563eb;
-      color:#fff;
-      font-weight:800;
-      cursor:pointer;
-      margin:6px 0;
-      transition:.15s transform,.15s filter,.15s opacity;
-    }
-    button:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.08)}
-    button:active:not(:disabled){transform:translateY(0)}
-    button.secondary{background:#334155}
-    button.danger{background:#dc2626}
-    button:disabled{opacity:.42;cursor:not-allowed}
-
-    .room{
-      display:none;
-      margin:8px 0;
-      padding:12px;
-      text-align:center;
-      border:1px dashed #60a5fa;
-      background:#020617;
-      border-radius:14px;
-      font-size:22px;
-      font-weight:900;
-      letter-spacing:1.5px;
-      user-select:all;
-    }
-
-    .status{
-      min-height:74px;
-      padding:12px;
-      margin-top:8px;
-      background:#020617;
-      color:#cbd5e1;
-      border:1px solid var(--border);
-      border-radius:14px;
-      white-space:pre-wrap;
-      line-height:1.35;
-    }
-
-    .boardShell{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      min-height:650px;
-    }
-
-    .board{
-      width:min(92vw,650px);
-      height:min(92vw,650px);
-      max-width:650px;
-      max-height:650px;
-      display:grid;
-      grid-template-columns:repeat(11,1fr);
-      grid-template-rows:repeat(11,1fr);
-      gap:4px;
-      padding:10px;
-      border-radius:24px;
-      border:2px solid var(--border);
-      background:rgba(2,6,23,.58);
-      box-shadow:inset 0 0 25px rgba(0,0,0,.28);
-    }
-
-    .cell{
-      position:relative;
-      border-radius:11px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      border:1px solid rgba(148,163,184,.24);
-      background:rgba(148,163,184,.10);
-      overflow:visible;
-    }
-    .path{background:var(--path);border-color:#cbd5e1}
-    .startRed{background:linear-gradient(135deg,#fecaca,#fff)}
-    .startBlue{background:linear-gradient(135deg,#bfdbfe,#fff)}
-    .baseRed{background:rgba(239,68,68,.22);border-color:rgba(239,68,68,.8)}
-    .baseBlue{background:rgba(59,130,246,.22);border-color:rgba(59,130,246,.8)}
-    .homeRed{background:rgba(239,68,68,.62)}
-    .homeBlue{background:rgba(59,130,246,.62)}
-    .center{
-      background:
-        linear-gradient(135deg, rgba(239,68,68,.85) 0 49%, rgba(59,130,246,.85) 51% 100%);
-      border-color:rgba(255,255,255,.32);
-    }
-    .center::after{
-      content:"🏁";
-      font-size:22px;
-      filter:drop-shadow(0 2px 4px rgba(0,0,0,.4));
-    }
-
-    .pawn{
-      width:74%;
-      height:74%;
-      border-radius:50%;
-      border:3px solid #fff;
-      box-shadow:0 7px 15px rgba(0,0,0,.38);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      color:#fff;
-      font-size:14px;
-      font-weight:900;
-      cursor:pointer;
-      position:relative;
-      z-index:5;
-    }
-    .pawn.red{background:var(--red)}
-    .pawn.blue{background:var(--blue)}
-    .pawn.movable{
-      outline:4px solid var(--gold);
-      animation:pawnPulse .7s infinite alternate;
-    }
-    @keyframes pawnPulse{to{transform:scale(1.1)}}
-
-    .diceArea{
-      margin:12px auto 8px;
-      display:flex;
-      justify-content:center;
-      perspective:700px;
-      height:125px;
-      align-items:center;
-    }
-    .dice3d{
-      width:92px;
-      height:92px;
-      position:relative;
-      transform-style:preserve-3d;
-      transform:rotateX(-18deg) rotateY(22deg);
-      transition:transform .7s cubic-bezier(.16,.84,.44,1);
-    }
-    .dice3d.rolling{
-      animation:diceRoll .95s linear infinite;
-    }
-    @keyframes diceRoll{
-      0%{transform:rotateX(0deg) rotateY(0deg) rotateZ(0deg)}
-      35%{transform:rotateX(260deg) rotateY(180deg) rotateZ(90deg)}
-      70%{transform:rotateX(520deg) rotateY(430deg) rotateZ(220deg)}
-      100%{transform:rotateX(720deg) rotateY(720deg) rotateZ(360deg)}
-    }
-    .face{
-      position:absolute;
-      width:92px;
-      height:92px;
-      border-radius:18px;
-      background:#fff;
-      border:2px solid #d1d5db;
-      box-shadow:inset 0 0 16px rgba(0,0,0,.12);
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      grid-template-rows:repeat(3,1fr);
-      padding:13px;
-      gap:4px;
-    }
-    .dot{
-      width:13px;
-      height:13px;
-      background:#111827;
-      border-radius:50%;
-      align-self:center;
-      justify-self:center;
-      opacity:0;
-    }
-    .d1 .m{opacity:1}
-    .d2 .tl,.d2 .br{opacity:1}
-    .d3 .tl,.d3 .m,.d3 .br{opacity:1}
-    .d4 .tl,.d4 .tr,.d4 .bl,.d4 .br{opacity:1}
-    .d5 .tl,.d5 .tr,.d5 .m,.d5 .bl,.d5 .br{opacity:1}
-    .d6 .tl,.d6 .tr,.d6 .ml,.d6 .mr,.d6 .bl,.d6 .br{opacity:1}
-
-    .front{transform:translateZ(46px)}
-    .back{transform:rotateY(180deg) translateZ(46px)}
-    .right{transform:rotateY(90deg) translateZ(46px)}
-    .left{transform:rotateY(-90deg) translateZ(46px)}
-    .top{transform:rotateX(90deg) translateZ(46px)}
-    .bottom{transform:rotateX(-90deg) translateZ(46px)}
-
-    .diceResult{
-      text-align:center;
-      color:#e2e8f0;
-      font-weight:800;
-      min-height:22px;
-    }
-
-    .tiny{font-size:12px;color:var(--muted)}
-    .redText{color:#fca5a5}
-    .blueText{color:#93c5fd}
-
-    @media(max-width:940px){
-      body{align-items:flex-start}
-      .app{grid-template-columns:1fr}
-      .boardShell{min-height:auto}
-      .board{width:94vw;height:94vw}
-    }
+    :root{--ink:#153d45;--muted:#62777b;--coral:#e88968;--sand:#f7f3eb;--white:#fff;--teal:#164854;--line:#e7e9e4}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:'DM Sans',sans-serif;background:#fff;color:var(--ink)}a{color:inherit;text-decoration:none}button,input,select{font:inherit}button{cursor:pointer}
+    .container{width:min(1160px,calc(100% - 42px));margin:auto}
+    .top{height:82px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+    .logo{font-family:'Playfair Display',serif;font-size:30px;font-weight:700;letter-spacing:-1px;white-space:nowrap}.logo span{color:var(--coral)}
+    .nav{display:flex;gap:32px;align-items:center;font-size:14px;font-weight:700}.nav a:hover{color:var(--coral)}
+    .nav-cta{border:1px solid var(--ink);border-radius:30px;padding:12px 19px;white-space:nowrap;font-size:13px;font-weight:700}
+    .hero{position:relative;min-height:640px;color:white;display:flex;align-items:center;isolation:isolate;background:#355e68}
+    .hero:before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(10,44,52,.79),rgba(10,44,52,.21)),url('https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=2200&q=85') center 53%/cover}
+    .eyebrow{text-transform:uppercase;letter-spacing:3px;font-weight:700;font-size:12px}
+    h1,h2,h3{font-family:'Playfair Display',serif}h1{font-size:clamp(50px,7vw,88px);line-height:1.08;font-weight:500;max-width:740px;margin:20px 0}h1 em{color:#ffcfaf;font-style:italic}
+    .hero p{font-size:17px;line-height:1.75;max-width:530px;color:#f1f1e9;margin-bottom:30px}
+    .btn{display:inline-flex;justify-content:center;align-items:center;border:0;background:var(--coral);color:#173e45;border-radius:30px;padding:16px 27px;font-weight:700;transition:transform .2s,background .2s}.btn:hover{transform:translateY(-2px);background:#f3a184}
+    .hero-note{font-size:12px;letter-spacing:1px;margin-top:24px;color:#e3eae6}
+    section{padding:95px 0}.section-head{display:flex;justify-content:space-between;gap:25px;align-items:end;margin-bottom:34px}.section-head h2{font-weight:500;font-size:clamp(34px,4vw,49px);margin:8px 0}.section-head p{color:var(--muted);max-width:420px;line-height:1.7}
+    .kicker{font-size:12px;font-weight:700;letter-spacing:2.4px;text-transform:uppercase;color:#c77758}
+    .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}.destination{overflow:hidden;border-radius:17px;background:var(--sand)}
+    .destination img{width:100%;height:300px;object-fit:cover;display:block;transition:transform .4s}.destination:hover img{transform:scale(1.045)}
+    .destination-body{padding:23px}.destination-body h3{font-size:27px;margin:0 0 8px}.destination-body p{color:var(--muted);margin:0 0 17px;font-size:14px;line-height:1.6}.destination-body a{font-size:14px;font-weight:700;color:#be6e51}
+    .benefits{background:var(--sand)}.benefit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:45px}.benefit .symbol{width:52px;height:52px;display:grid;place-items:center;border-radius:50%;background:#f5ded2;font-size:25px}.benefit h3{font-size:23px;margin:17px 0 9px}.benefit p{line-height:1.75;color:var(--muted);margin:0}
+    .feature{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:70px}.feature img{width:100%;height:495px;object-fit:cover;border-radius:18px}.feature h2{font-size:clamp(35px,4vw,52px);font-weight:500;line-height:1.2;margin:15px 0}.feature p{line-height:1.9;color:var(--muted);margin-bottom:26px}
+    .contact{background:var(--teal);color:#fff}.contact-wrap{display:grid;grid-template-columns:1fr 1fr;gap:70px;align-items:start}.contact h2{font-size:clamp(35px,4vw,52px);font-weight:500;margin:12px 0 20px}.contact p{line-height:1.8;color:#d3e0dd}
+    form{background:#fff;color:var(--ink);padding:32px;border-radius:17px;display:grid;gap:13px}form label{font-size:13px;font-weight:700}
+    form input,form select,form textarea{width:100%;border:1px solid #d9e0dd;border-radius:8px;background:#fff;padding:12px;color:var(--ink)}form textarea{min-height:100px;resize:vertical;font:inherit}form .btn{margin-top:8px;width:100%}
+    .hint{font-size:12px;color:#667b7d;margin:0!important;line-height:1.5!important}.form-success{display:none;font-size:13px;color:#16663e}
+    footer{padding:26px 0;background:#0e333c;color:#b9cecc;font-size:13px}.footer-inner{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}footer strong{color:#fff}
+    .mobile-toggle{display:none;border:0;background:none;font-size:26px;color:var(--ink)}
+    @media(max-width:800px){.top{height:72px}.mobile-toggle{display:block}.nav{display:none;position:absolute;top:72px;left:0;right:0;background:#fff;padding:22px;z-index:10;flex-direction:column;align-items:flex-start;box-shadow:0 15px 25px #0002}.nav.open{display:flex}.nav-cta{display:none}.hero{min-height:610px}.cards,.benefit-grid{grid-template-columns:1fr 1fr}.feature,.contact-wrap{grid-template-columns:1fr;gap:30px}.feature img{height:360px}.section-head{display:block}section{padding:66px 0}}
+    @media(max-width:560px){.cards,.benefit-grid{grid-template-columns:1fr}.destination img{height:270px}.hero{min-height:580px}.hero p{font-size:15px}.container{width:min(100% - 32px,1160px)}form{padding:22px}.feature img{height:300px}}
   </style>
 </head>
 <body>
-  <main class="app">
-    <section class="card">
-      <h1>🎲 Не се сърди, човече</h1>
-      <p>Онлайн игра за двама. Качи файла като <b>index.html</b> в GitHub Pages.</p>
-
-      <h2>1) Онлайн връзка</h2>
-      <button id="hostBtn">Създай стая</button>
-      <input id="joinCode" placeholder="Код на стаята, например LUDO-ABC123" autocomplete="off" />
-      <button id="joinBtn" class="secondary">Влез в стая</button>
-      <div id="roomBox" class="room"></div>
-      <div id="status" class="status">Не сте свързани.</div>
-
-      <h2>2) Управление</h2>
-      <div class="meta">
-        <div class="pill"><span>Ти си</span><strong id="meText">—</strong></div>
-        <div class="pill"><span>Ред е на</span><strong id="turnText">—</strong></div>
+  <header class="container top">
+    <a class="logo" href="#nachalo" aria-label="Desi Travel начало">desi<span>travel.</span></a>
+    <button class="mobile-toggle" id="menuBtn" aria-label="Отвори меню" aria-expanded="false">☰</button>
+    <nav class="nav" id="nav">
+      <a href="#destinacii">Дестинации</a><a href="#predimstva">Защо с нас</a><a href="#za-nas">За нас</a><a href="#kontakti">Контакти</a>
+    </nav>
+    <a class="nav-cta" href="#kontakti">Планирай пътуване ↗</a>
+  </header>
+  <main>
+    <div class="hero" id="nachalo"><div class="container">
+      <div class="eyebrow">DESI TRAVEL · ОТКРИЙ ПОВЕЧЕ</div>
+      <h1>Най-хубавите истории започват с <em>пътуване.</em></h1>
+      <p>Открий красиви места, нови култури и моменти, които остават завинаги. Ние ти помагаме да превърнеш мечтаната почивка в план.</p>
+      <a class="btn" href="#destinacii">Разгледай дестинациите &nbsp; ↗</a>
+      <div class="hero-note">ПЪТЕШЕСТВИЯ, СЪЗДАДЕНИ С ВДЪХНОВЕНИЕ</div>
+    </div></div>
+    <section id="destinacii"><div class="container">
+      <div class="section-head"><div><div class="kicker">ИДЕИ ЗА СЛЕДВАЩАТА ТИ ПОЧИВКА</div><h2>Дестинации, които вдъхновяват</h2></div><p>От слънчеви крайбрежия до градове с история. Избери посока, а ние ще помогнем с идеите.</p></div>
+      <div class="cards">
+        <article class="destination"><img loading="lazy" alt="Бели къщи и синьо море на Санторини" src="https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?auto=format&fit=crop&w=900&q=80"><div class="destination-body"><h3>Гърция</h3><p>Острови, залези и средиземноморски чар.</p><a href="#kontakti">Попитай за пътуване →</a></div></article>
+        <article class="destination"><img loading="lazy" alt="Крайбрежие на Италия" src="https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=900&q=80"><div class="destination-body"><h3>Италия</h3><p>Култура, вкусна храна и незабравими гледки.</p><a href="#kontakti">Попитай за пътуване →</a></div></article>
+        <article class="destination"><img loading="lazy" alt="Палми и плаж в тропически курорт" src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80"><div class="destination-body"><h3>Екзотични почивки</h3><p>Тюркоазени води и време само за теб.</p><a href="#kontakti">Попитай за пътуване →</a></div></article>
       </div>
-
-      <div class="diceArea">
-        <div id="dice" class="dice3d" aria-label="Зар">
-          <div class="face front d1"></div>
-          <div class="face back d6"></div>
-          <div class="face right d3"></div>
-          <div class="face left d4"></div>
-          <div class="face top d5"></div>
-          <div class="face bottom d2"></div>
-        </div>
+    </div></section>
+    <section class="benefits" id="predimstva"><div class="container">
+      <div class="section-head"><div><div class="kicker">НАШИЯТ ПОДХОД</div><h2>Пътешествието е в детайлите</h2></div></div>
+      <div class="benefit-grid">
+        <div class="benefit"><div class="symbol">✦</div><h3>Лично отношение</h3><p>Всяко пътуване започва с разговор за твоите желания, стил и бюджет.</p></div>
+        <div class="benefit"><div class="symbol">⌁</div><h3>Красиви маршрути</h3><p>Подбираме идеи за места, преживявания и забележителности според интересите ти.</p></div>
+        <div class="benefit"><div class="symbol">♡</div><h3>Спокойно планиране</h3><p>Ясни стъпки от първата идея до готовия план за твоята почивка.</p></div>
       </div>
-      <div id="diceResult" class="diceResult">Зарът още не е хвърлен.</div>
-
-      <button id="rollBtn" disabled>Хвърли зара</button>
-      <div class="row">
-        <button id="copyBtn" class="secondary" disabled>Копирай кода</button>
-        <button id="newGameBtn" class="danger" disabled>Нова игра</button>
-      </div>
-
-      <p class="tiny">
-        Правила: за излизане от базата трябва 6. При 6 хвърляш пак.
-        Ако стъпиш върху противникова пионка, я връщаш в базата.
-      </p>
-    </section>
-
-    <section class="card boardShell">
-      <div id="board" class="board" aria-label="Игрална дъска"></div>
-    </section>
+    </div></section>
+    <section id="za-nas"><div class="container feature">
+      <img loading="lazy" src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1100&q=85" alt="Карта, фотоапарат и вещи за пътуване">
+      <div><div class="kicker">ЗАПОЗНАЙ СЕ С НАС</div><h2>Светът е твърде красив, за да стоим на едно място.</h2><p>Desi Travel е концепция за туристически бранд, вдъхновен от любопитството към света. Вярваме, че най-ценните сувенири са спомените, новите срещи и историите, които носим у дома.</p><a class="btn" href="#kontakti">Нека планираме заедно ↗</a></div>
+    </div></section>
+    <section class="contact" id="kontakti"><div class="container contact-wrap">
+      <div><div class="kicker" style="color:#ffb999">СЛЕДВАЩАТА ТИ ПРИКЛЮЧЕНСКА ИСТОРИЯ</div><h2>Къде искаш да отидеш?</h2><p>Разкажи ни как си представяш идеалното пътуване и ще започнем оттам.</p><p><strong>Desi Travel</strong><br>Твоето пътешествие започва тук.</p></div>
+      <form id="inquiry">
+        <label for="name">Твоето име</label><input id="name" name="name" required placeholder="Име и фамилия" autocomplete="name">
+        <label for="email">Имейл</label><input id="email" name="email" type="email" required placeholder="name@example.com" autocomplete="email">
+        <label for="destination">Желана дестинация</label><select id="destination" name="destination"><option>Все още избирам</option><option>Гърция</option><option>Италия</option><option>Екзотична почивка</option><option>Друга</option></select>
+        <label for="message">Какво пътуване си представяш?</label><textarea id="message" name="message" placeholder="Кога, колко души, какъв тип почивка..."></textarea>
+        <button class="btn" type="submit">Подготви запитване ↗</button>
+        <p class="hint">Демо форма: подготвя текст на запитването, без да изпраща лични данни към сървър.</p>
+        <p id="formSuccess" class="form-success" role="status">Запитването е подготвено и копирано. Изпрати го по предпочитан от теб канал.</p>
+      </form>
+    </div></section>
   </main>
-
-<script>
-"use strict";
-
-/* =========================
-   CONFIG
-========================= */
-const COLORS = Object.freeze({
-  RED: "red",
-  BLUE: "blue"
-});
-
-const LABEL = Object.freeze({
-  red: "Червен",
-  blue: "Син"
-});
-
-const PATH = Object.freeze([
-  [5,0],[6,0],[6,1],[6,2],[6,3],[6,4],[7,4],[8,4],[9,4],[10,4],
-  [10,5],[10,6],[9,6],[8,6],[7,6],[6,6],[6,7],[6,8],[6,9],[6,10],
-  [5,10],[4,10],[4,9],[4,8],[4,7],[4,6],[3,6],[2,6],[1,6],[0,6],
-  [0,5],[0,4],[1,4],[2,4],[3,4],[4,4],[4,3],[4,2],[4,1],[4,0]
-]);
-
-const START_INDEX = Object.freeze({ red:0, blue:20 });
-
-const CELLS = Object.freeze({
-  base: {
-    red: [[1,1],[1,2],[2,1],[2,2]],
-    blue:[[8,8],[8,9],[9,8],[9,9]]
-  },
-  home: {
-    red: [[5,1],[5,2],[5,3],[5,4]],
-    blue:[[5,9],[5,8],[5,7],[5,6]]
-  }
-});
-
-const DICE_ROTATIONS = Object.freeze({
-  1: "rotateX(-18deg) rotateY(22deg)",
-  2: "rotateX(90deg) rotateY(0deg)",
-  3: "rotateX(-18deg) rotateY(-90deg)",
-  4: "rotateX(-18deg) rotateY(90deg)",
-  5: "rotateX(-90deg) rotateY(0deg)",
-  6: "rotateX(-18deg) rotateY(180deg)"
-});
-
-/* =========================
-   DOM
-========================= */
-const $ = (id) => document.getElementById(id);
-
-const ui = {
-  board: $("board"),
-  status: $("status"),
-  roomBox: $("roomBox"),
-  joinCode: $("joinCode"),
-  hostBtn: $("hostBtn"),
-  joinBtn: $("joinBtn"),
-  rollBtn: $("rollBtn"),
-  copyBtn: $("copyBtn"),
-  newGameBtn: $("newGameBtn"),
-  meText: $("meText"),
-  turnText: $("turnText"),
-  dice: $("dice"),
-  diceResult: $("diceResult")
-};
-
-/* Create dice dots */
-document.querySelectorAll(".face").forEach(face => {
-  ["tl","tm","tr","ml","m","mr","bl","bm","br"].forEach(name => {
-    const dot = document.createElement("span");
-    dot.className = "dot " + name;
-    face.appendChild(dot);
-  });
-});
-
-/* =========================
-   NETWORK STATE
-========================= */
-let peer = null;
-let connection = null;
-let myColor = null;
-let isHost = false;
-let rollingLocked = false;
-
-/* =========================
-   GAME STATE
-   pawn values:
-   -1 = base
-    0..39 = global path index
-    40..43 = own home lane
-    44 = finished
-========================= */
-let game = createGame();
-
-/* =========================
-   GAME LOGIC
-========================= */
-function createGame(){
-  return {
-    version: 1,
-    turn: COLORS.RED,
-    dice: null,
-    rolled: false,
-    winner: null,
-    moveNo: 0,
-    pawns: {
-      red: [-1,-1,-1,-1],
-      blue:[-1,-1,-1,-1]
-    },
-    message: "Играта започна. Червеният е първи."
-  };
-}
-
-function randomRoomCode(){
-  return "LUDO-" + Math.random().toString(36).slice(2,8).toUpperCase();
-}
-
-function opponentOf(color){
-  return color === COLORS.RED ? COLORS.BLUE : COLORS.RED;
-}
-
-function isConnected(){
-  return Boolean(connection && connection.open);
-}
-
-function canControl(){
-  return isConnected() && myColor && game.turn === myColor && !game.winner && !rollingLocked;
-}
-
-function pathIndexForStart(color){
-  return START_INDEX[color];
-}
-
-function homeEntryIndex(color){
-  return (START_INDEX[color] + PATH.length - 1) % PATH.length;
-}
-
-function isOwnPathProgress(color, boardIndex){
-  const start = pathIndexForStart(color);
-  return (boardIndex - start + PATH.length) % PATH.length;
-}
-
-function nextPosition(color, current, dice){
-  if(current === 44) return null;
-
-  if(current === -1){
-    if(dice !== 6) return null;
-    return pathIndexForStart(color);
-  }
-
-  if(current >= 40 && current <= 43){
-    const next = current + dice;
-    return next <= 44 ? next : null;
-  }
-
-  const progress = isOwnPathProgress(color, current);
-
-  if(progress + dice < PATH.length){
-    return (current + dice) % PATH.length;
-  }
-
-  const homeStep = progress + dice - PATH.length;
-  return homeStep <= 4 ? 40 + homeStep : null;
-}
-
-function movablePawns(color){
-  if(!game.rolled || !game.dice || game.winner) return [];
-  return game.pawns[color]
-    .map((pos, index) => ({ index, next: nextPosition(color, pos, game.dice) }))
-    .filter(x => x.next !== null)
-    .map(x => x.index);
-}
-
-function movePawn(color, pawnIndex){
-  if(!canControl() || color !== myColor) return;
-
-  const possible = movablePawns(color);
-  if(!possible.includes(pawnIndex)) return;
-
-  const oldPos = game.pawns[color][pawnIndex];
-  const newPos = nextPosition(color, oldPos, game.dice);
-
-  game.pawns[color][pawnIndex] = newPos;
-  captureIfNeeded(color, pawnIndex);
-
-  game.moveNo += 1;
-
-  if(game.pawns[color].every(p => p === 44)){
-    game.winner = color;
-    game.message = `${LABEL[color]} спечели! 🎉`;
-  } else if(game.dice === 6){
-    game.message = `${LABEL[color]} премести пионка и има още един ход, защото хвърли 6.`;
-    game.dice = null;
-    game.rolled = false;
-  } else {
-    game.message = `${LABEL[color]} премести пионка.`;
-    changeTurn();
-  }
-
-  broadcast({ type:"game", game });
-  render();
-}
-
-function captureIfNeeded(color, pawnIndex){
-  const pos = game.pawns[color][pawnIndex];
-
-  if(pos < 0 || pos >= 40) return;
-
-  const opponent = opponentOf(color);
-  for(let i = 0; i < game.pawns[opponent].length; i++){
-    if(game.pawns[opponent][i] === pos){
-      game.pawns[opponent][i] = -1;
-      game.message = `${LABEL[color]} върна противникова пионка в базата.`;
-    }
-  }
-}
-
-function changeTurn(){
-  game.turn = opponentOf(game.turn);
-  game.dice = null;
-  game.rolled = false;
-}
-
-/* =========================
-   DICE
-========================= */
-function showDice(value){
-  ui.dice.classList.remove("rolling");
-  ui.dice.style.transform = DICE_ROTATIONS[value] || DICE_ROTATIONS[1];
-  ui.diceResult.textContent = value ? `Падна се ${value}` : "Зарът още не е хвърлен.";
-}
-
-function animateDice(finalValue){
-  rollingLocked = true;
-  ui.rollBtn.disabled = true;
-  ui.dice.classList.add("rolling");
-  ui.diceResult.textContent = "Зарът се върти...";
-
-  return new Promise(resolve => {
-    setTimeout(() => {
-      ui.dice.classList.remove("rolling");
-      showDice(finalValue);
-      rollingLocked = false;
-      resolve();
-    }, 1150);
-  });
-}
-
-async function rollDice(){
-  if(!canControl() || game.rolled) return;
-
-  const value = 1 + Math.floor(Math.random() * 6);
-  await animateDice(value);
-
-  game.dice = value;
-  game.rolled = true;
-  game.message = `${LABEL[myColor]} хвърли ${value}.`;
-
-  const moves = movablePawns(myColor);
-  if(moves.length === 0){
-    game.message += "\nНяма възможен ход.";
-    if(value === 6){
-      game.dice = null;
-      game.rolled = false;
-      game.message += "\nПонеже е 6, хвърля пак.";
-    } else {
-      changeTurn();
-    }
-  }
-
-  broadcast({ type:"game", game });
-  render();
-}
-
-/* =========================
-   NETWORK
-========================= */
-function broadcast(payload){
-  if(isConnected()) connection.send(payload);
-}
-
-function attachConnectionEvents(){
-  connection.on("open", () => {
-    setStatus("Свързани сте. Приятна игра!");
-    ui.newGameBtn.disabled = false;
-    if(isHost) broadcast({ type:"game", game });
-    render();
-  });
-
-  connection.on("data", async payload => {
-    if(!payload || typeof payload !== "object") return;
-
-    if(payload.type === "game"){
-      const oldDice = game.dice;
-      const oldMove = game.moveNo;
-      game = payload.game;
-
-      const shouldAnimateRemoteRoll =
-        payload.animateDice === true &&
-        game.dice &&
-        game.moveNo === oldMove &&
-        game.dice !== oldDice;
-
-      if(shouldAnimateRemoteRoll) await animateDice(game.dice);
-      else showDice(game.dice);
-
-      render();
-    }
-
-    if(payload.type === "new-game"){
-      game = createGame();
-      showDice(null);
-      render();
-    }
-  });
-
-  connection.on("close", () => {
-    setStatus("Връзката беше прекъсната.");
-    render();
-  });
-}
-
-function createRoom(){
-  const code = randomRoomCode();
-  isHost = true;
-  myColor = COLORS.RED;
-
-  peer = new Peer(code);
-  peer.on("open", () => {
-    ui.roomBox.style.display = "block";
-    ui.roomBox.textContent = code;
-    ui.copyBtn.disabled = false;
-    setStatus("Стая създадена. Изпрати кода на другия играч.");
-    render();
-  });
-
-  peer.on("connection", conn => {
-    connection = conn;
-    attachConnectionEvents();
-  });
-
-  peer.on("error", err => setStatus("Грешка при създаване на стая: " + err.type));
-}
-
-function joinRoom(){
-  const code = ui.joinCode.value.trim().toUpperCase();
-  if(!code){
-    alert("Въведи код на стаята.");
-    return;
-  }
-
-  isHost = false;
-  myColor = COLORS.BLUE;
-  peer = new Peer();
-
-  peer.on("open", () => {
-    connection = peer.connect(code, { reliable:true });
-    attachConnectionEvents();
-    setStatus("Свързване към стаята...");
-    render();
-  });
-
-  peer.on("error", err => setStatus("Грешка при свързване: " + err.type));
-}
-
-/* =========================
-   RENDERING
-========================= */
-function keyOf(cell){
-  return `${cell[0]},${cell[1]}`;
-}
-
-function cellAt(row, col){
-  return ui.board.querySelector(`[data-cell="${row},${col}"]`);
-}
-
-function boardCellForPawn(color, pos, pawnIndex){
-  if(pos === -1) return CELLS.base[color][pawnIndex];
-
-  if(pos >= 40 && pos <= 43){
-    return CELLS.home[color][pos - 40];
-  }
-
-  if(pos === 44){
-    return CELLS.home[color][3];
-  }
-
-  return PATH[pos];
-}
-
-function renderBoard(){
-  const pathKeys = new Set(PATH.map(keyOf));
-  const redBase = new Set(CELLS.base.red.map(keyOf));
-  const blueBase = new Set(CELLS.base.blue.map(keyOf));
-  const redHome = new Set(CELLS.home.red.map(keyOf));
-  const blueHome = new Set(CELLS.home.blue.map(keyOf));
-
-  ui.board.innerHTML = "";
-
-  for(let row = 0; row < 11; row++){
-    for(let col = 0; col < 11; col++){
-      const div = document.createElement("div");
-      div.className = "cell";
-      div.dataset.cell = `${row},${col}`;
-
-      const key = `${row},${col}`;
-      if(pathKeys.has(key)) div.classList.add("path");
-      if(key === keyOf(PATH[START_INDEX.red])) div.classList.add("startRed");
-      if(key === keyOf(PATH[START_INDEX.blue])) div.classList.add("startBlue");
-      if(redBase.has(key)) div.classList.add("baseRed");
-      if(blueBase.has(key)) div.classList.add("baseBlue");
-      if(redHome.has(key)) div.classList.add("homeRed");
-      if(blueHome.has(key)) div.classList.add("homeBlue");
-      if(row >= 4 && row <= 6 && col >= 4 && col <= 6) div.classList.add("center");
-
-      ui.board.appendChild(div);
-    }
-  }
-
-  placePawns(COLORS.RED);
-  placePawns(COLORS.BLUE);
-}
-
-function placePawns(color){
-  const movable = canControl() && color === myColor ? movablePawns(color) : [];
-
-  game.pawns[color].forEach((pos, index) => {
-    const [row, col] = boardCellForPawn(color, pos, index);
-    const cell = cellAt(row, col);
-
-    const pawn = document.createElement("button");
-    pawn.type = "button";
-    pawn.className = `pawn ${color}`;
-    pawn.textContent = String(index + 1);
-    pawn.title = `${LABEL[color]} пионка ${index + 1}`;
-    pawn.style.width = "";
-    pawn.style.margin = "0";
-
-    if(movable.includes(index)) pawn.classList.add("movable");
-
-    pawn.addEventListener("click", () => movePawn(color, index));
-    cell.appendChild(pawn);
-  });
-}
-
-function renderControls(){
-  ui.meText.textContent = myColor ? LABEL[myColor] : "—";
-  ui.meText.className = myColor === COLORS.RED ? "redText" : myColor === COLORS.BLUE ? "blueText" : "";
-
-  ui.turnText.textContent = LABEL[game.turn];
-  ui.turnText.className = game.turn === COLORS.RED ? "redText" : "blueText";
-
-  ui.rollBtn.disabled = !canControl() || game.rolled;
-  ui.newGameBtn.disabled = !isConnected();
-
-  if(!rollingLocked) showDice(game.dice);
-
-  const connectedText = isConnected() ? "Свързани сте." : "Не сте свързани.";
-  const winnerText = game.winner ? `\nПобедител: ${LABEL[game.winner]}` : "";
-  setStatus(`${connectedText}\n${game.message}${winnerText}`);
-}
-
-function render(){
-  renderBoard();
-  renderControls();
-}
-
-function setStatus(text){
-  ui.status.textContent = text;
-}
-
-/* =========================
-   EVENTS
-========================= */
-ui.hostBtn.addEventListener("click", createRoom);
-ui.joinBtn.addEventListener("click", joinRoom);
-ui.rollBtn.addEventListener("click", rollDice);
-
-ui.copyBtn.addEventListener("click", async () => {
-  const code = ui.roomBox.textContent.trim();
-  if(!code) return;
-  try{
-    await navigator.clipboard.writeText(code);
-    setStatus("Кодът е копиран: " + code);
-  }catch{
-    setStatus("Кодът е: " + code);
-  }
-});
-
-ui.newGameBtn.addEventListener("click", () => {
-  if(!confirm("Нова игра?")) return;
-  game = createGame();
-  broadcast({ type:"new-game" });
-  broadcast({ type:"game", game });
-  showDice(null);
-  render();
-});
-
-render();
-</script>
+  <footer><div class="container footer-inner"><span><strong>desitravel.</strong> © <span id="year"></span> Всички права запазени.</span><span>Демонстрационен уебсайт · Оферти и контакти се добавят допълнително.</span></div></footer>
+  <script>
+    document.getElementById('year').textContent=new Date().getFullYear();
+    const menuBtn=document.getElementById('menuBtn'), nav=document.getElementById('nav');
+    menuBtn.addEventListener('click',()=>{const open=nav.classList.toggle('open');menuBtn.setAttribute('aria-expanded',String(open))});
+    nav.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{nav.classList.remove('open');menuBtn.setAttribute('aria-expanded','false')}));
+    document.getElementById('inquiry').addEventListener('submit',async e=>{
+      e.preventDefault();const f=new FormData(e.currentTarget);
+      const content='Desi Travel – запитване\nИме: '+f.get('name')+'\nИмейл: '+f.get('email')+'\nДестинация: '+f.get('destination')+'\nСъобщение: '+f.get('message');
+      try{await navigator.clipboard.writeText(content);document.getElementById('formSuccess').style.display='block'}
+      catch{window.prompt('Копирай текста на запитването:',content)}
+    });
+  </script>
 </body>
 </html>
